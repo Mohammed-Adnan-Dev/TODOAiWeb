@@ -1,13 +1,14 @@
-# Build stage
-FROM maven:3.8.6-openjdk-11 AS build
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src ./src
-RUN mvn clean package -DskipTests
+# Use a base image with Tomcat and JDK
+FROM tomcat:9.0-jdk17
 
-# Runtime stage
-FROM tomcat:9.0-jre11
-COPY --from=build /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
+# Remove default web apps
+RUN rm -rf /usr/local/tomcat/webapps/*
+
+# Copy WAR or app files
+COPY target/TodoAIWebApp.war /usr/local/tomcat/webapps/ROOT.war
+
+# Expose port 8080
 EXPOSE 8080
+
+# Start Tomcat
 CMD ["catalina.sh", "run"]
